@@ -1,0 +1,68 @@
+// 📄 KQL overview https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/ 
+// 📃 Quick KQL reference guide can be found here https://docs.microsoft.com/en-us/azure/data-explorer/kql-quick-reference
+// Starter queries: https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/starter?tabs=azure-cli
+// Advanced queries: https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/advanced?tabs=azure-cli
+
+//    Sample data sets that you can use to run KQL queries and get a "feel" for the language:
+// Use your Azure account to sign in to the Azure Data Explorer web UI.
+// On the left pane, select Add Cluster.
+// In the dialog, under Connection URI, enter help.
+// Select Add.
+
+// Return a specific number of arbitrary rows with 'take':
+StormEvents
+| take 5
+
+// Select columns to return by using the 'project' operator:
+StormEvents
+| project EventType, State, DamageProperty, DamageCrops, InjuriesDirect, InjuriesIndirect
+| take 10
+
+// Rename columns with project:
+StormEvents
+| project US_State=State, EventType, Injuries=InjuriesDirect+InjuriesIndirect, Damage=DamageCrops+DamageProperty
+| take 10
+
+// Remove columns with project-away:
+StormEvents
+| project-away EpisodeId, EventId
+| take 10
+
+// Filter data with where:
+StormEvents
+| where DamageProperty > 0
+| project State, EventType, DamageProperty
+| take 10
+
+// Timebound events with ago:
+StormEvents
+| where DamageProperty > 0
+| where StartTime > ago(365d)
+| project State, EventType, DamageProperty
+
+// String operators - equals, has:
+// https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/datatypes-string-operators
+// has = Right-hand-side (RHS) is a whole term in left-hand-side (LHS)
+// contains = RHS occurs as a subsequence of LHS
+StormEvents
+| where DamageProperty > 0
+| where State == "FLORIDA"
+| where EventType has "wind"
+| project StartTime, EventType, DamageProperty
+
+// Filter on datetime values
+// syntax: where time between ( datetime(value)..datetime(value)
+// e.g: where StartTime between (datetime(2007-01-01)..datetime(2007-06-01))
+
+// sort operator (descending by default):
+StormEvents
+| where DamageProperty > 0
+| project State, EventType, DamageProperty
+| sort by State asc, DamageProperty
+
+// top operator:
+StormEvents
+| project State, Injuries=InjuriesDirect+InjuriesIndirect
+| top 10 by Injuries
+
+
